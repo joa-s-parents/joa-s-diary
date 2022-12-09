@@ -4,7 +4,7 @@
 
 ## lovely joa
 
-![joa](./image/joa_1.JPG)
+![joa](./image/joa_main.jpg)
 
 ## Parent
 
