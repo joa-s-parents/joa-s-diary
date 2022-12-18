@@ -18,14 +18,15 @@ async function bootstrap() {
     }),
   );
 
+  //* configuration
+  const configService = app.get(ConfigService);
+  const port = (await configService.get('PORT')) || 3001;
+
   // * Swagger //
 
   setupSwagger(app);
 
   // * Swagger //
-
-  const configService = app.get(ConfigService);
-  const port = (await configService.get('PORT')) || 4000;
 
   await app.listen(port);
 
