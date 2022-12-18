@@ -1,15 +1,25 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ConfigModule as MyConfigModule } from './config/config.module';
+import { ConfigOrmService } from './config/config.orm.service';
 import { SampleModule } from './sample/sample.module';
 
 @Module({
-  imports: [SampleModule, MyConfigModule, ConfigModule.forRoot()],
+  imports: [
+    MyConfigModule,
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      useClass: ConfigOrmService,
+      inject: [ConfigOrmService],
+    }),
+    SampleModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
