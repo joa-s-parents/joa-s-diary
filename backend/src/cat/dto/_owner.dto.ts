@@ -4,5 +4,5 @@ export class OwnerDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(15)
-  ownerId: string;
+  readonly ownerId: string;
 }

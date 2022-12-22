@@ -17,16 +17,16 @@ export class AddCatDto extends OwnerDto {
   @IsNotEmpty()
   @MaxLength(32)
   @MinLength(1)
-  name: string;
+  readonly name: string;
 
   @IsNumber()
   @IsNotEmpty()
   @Equals(0 || 1)
-  sex: number;
+  readonly sex: number;
 
   @IsDate()
   @IsNotEmpty()
   @Transform(({ value }) => value && new Date(value))
   @MaxDate(new Date())
-  birthedAt: Date;
+  readonly birthedAt: Date;
 }

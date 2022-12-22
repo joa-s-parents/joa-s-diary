@@ -2,11 +2,13 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, QueryFailedError, Repository } from 'typeorm';
 
 import { AddCatDto } from './dto/add-cat.dto';
+import { UpdateCatDto } from './dto/update-cat.dto';
 import { CatEntity } from './entities/cat.entity';
 
 @Injectable()
@@ -23,15 +25,8 @@ export class CatService {
    * @param {AddCatDto} addCatDto cat info
    */
   async addCat(addCatDto: AddCatDto): Promise<void> {
-    const catEntity: CatEntity = {
-      name: addCatDto.name,
-      ownerId: addCatDto.ownerId,
-      sex: addCatDto.sex,
-      birthedAt: addCatDto.birthedAt,
-    };
-
     await this.catRepository
-      .insert(catEntity)
+      .insert(addCatDto)
       .catch((error: QueryFailedError) => {
         this.logger.error(`insert cat query failed. ${error}`);
         throw new InternalServerErrorException({
@@ -54,5 +49,29 @@ export class CatService {
           message: `database query failed`,
         });
       });
+  }
+
+  async updateCat(id: number, updateCatDto: UpdateCatDto) {
+    const result = await this.catRepository
+      .update(
+        { id: id },
+        {
+          name: updateCatDto.name,
+          sex: updateCatDto.sex,
+          birthedAt: updateCatDto.birthedAt,
+        },
+      )
+      .catch((error: QueryFailedError) => {
+        this.logger.error(`update cat query failed. ${error}`);
+        throw new InternalServerErrorException({
+          message: `database query failed`,
+        });
+      });
+
+    if (result.affected < 1) {
+      throw new NotFoundException();
+    }
+
+    return;
   }
 }

@@ -1,8 +1,17 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  ParseIntPipe,
+} from '@nestjs/common';
 
 import { CatService } from './cat.service';
 import { AddCatDto } from './dto/add-cat.dto';
 import { GetCatByOwnerIdDto } from './dto/get-cat-by-owner.dto';
+import { UpdateCatDto } from './dto/update-cat.dto';
 import { CatEntity } from './entities/cat.entity';
 
 @Controller('cat')
@@ -19,7 +28,7 @@ export class CatController {
   }
 
   /**
-   *
+   * [GET] get cat info by owner id
    * @param {GetCatByOwnerIdDto} getCatByOwnerIdDto owner id
    * @returns {<Promise>CatEntity[]}                cat info
    */
@@ -28,5 +37,13 @@ export class CatController {
     @Param() getCatByOwnerIdDto: GetCatByOwnerIdDto,
   ): Promise<CatEntity[]> {
     return this.catService.getCatByOwnerId(getCatByOwnerIdDto.ownerId);
+  }
+
+  @Put(':id')
+  updateCat(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateCatDto: UpdateCatDto,
+  ) {
+    return this.catService.updateCat(id, updateCatDto);
   }
 }
