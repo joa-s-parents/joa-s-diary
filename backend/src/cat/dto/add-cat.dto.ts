@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   Equals,
   IsDate,
@@ -12,17 +13,20 @@ import {
 import { OwnerDto } from './_owner.dto';
 
 export class AddCatDto extends OwnerDto {
+  @ApiProperty()
   @IsString()
   @IsNotEmpty()
   @MaxLength(32)
   @MinLength(1)
   readonly name: string;
 
+  @ApiProperty()
   @IsNumber()
   @IsNotEmpty()
   @Equals(0 || 1)
   readonly sex: number;
 
+  @ApiProperty()
   @IsDate()
   @IsNotEmpty()
   @MaxDate(new Date())
