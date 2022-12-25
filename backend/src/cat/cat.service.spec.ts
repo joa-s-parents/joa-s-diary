@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -12,13 +12,15 @@ describe('Cat Service Test', () => {
   //* success service and repository
   let service: CatService;
   let repository: Repository<CatEntity>;
+  let module: TestingModule;
 
   //! failed service and repository
   let failedService: CatService;
   let failedRepository: Repository<CatEntity>;
+  let failedModule: TestingModule;
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         CatService,
         {
@@ -34,7 +36,7 @@ describe('Cat Service Test', () => {
     );
 
     //! failed service and repository
-    const failedModule = await Test.createTestingModule({
+    failedModule = await Test.createTestingModule({
       providers: [
         CatService,
         {
@@ -48,6 +50,11 @@ describe('Cat Service Test', () => {
     failedRepository = failedModule.get<Repository<CatEntity>>(
       getRepositoryToken(CatEntity),
     );
+  });
+
+  afterEach(async () => {
+    await module.close();
+    await failedModule.close();
   });
 
   it('should be defined', () => {
@@ -70,7 +77,6 @@ describe('Cat Service Test', () => {
 
   describe('get cat info by owner id', () => {
     it('[SUCC]should return an array of cats by owner id', async () => {
-      // console.log(await service.getCatByOwnerId('joa_mother'));
       expect(await service.getCatByOwnerId('joa_mother')).toStrictEqual(
         getCatByOwnerIdResp,
       );
@@ -85,7 +91,11 @@ describe('Cat Service Test', () => {
 
   describe('update cat info', () => {
     it('[SUCC]should successfully update a cat', async () => {
-      const updateCatSpyOn = jest.spyOn(repository, 'update');
+      const updateCatSpyOn = jest
+        .spyOn(repository, 'update')
+        .mockImplementation((id: number, { name, sex, birthedAt }) =>
+          Promise.resolve({ generatedMaps: [], raw: [], affected: 1 }),
+        );
       const retVal = await service.updateCat(1, updateCatDto);
 
       expect(updateCatSpyOn).toBeCalledWith(
@@ -111,6 +121,35 @@ describe('Cat Service Test', () => {
 
     it('[FAIL]should occurred exception', async () => {
       expect(failedService.updateCat(1, updateCatDto)).rejects.toThrow();
+    });
+  });
+
+  describe('delete cat info', () => {
+    it('[SUCC]should successfully delete a cat', async () => {
+      const deleteCatSpyOn = jest
+        .spyOn(repository, 'update')
+        .mockImplementation((id: number) =>
+          Promise.resolve({ generatedMaps: [], raw: [], affected: 1 }),
+        );
+      const retVal = await service.deleteCat(1);
+
+      expect(deleteCatSpyOn).toBeCalledWith(
+        { id: 1 },
+        { deletedAt: new Date() },
+      );
+      expect(retVal).toBeUndefined();
+    });
+
+    it('[FAIL]not found', async () => {
+      jest
+        .spyOn(repository, 'update')
+        .mockResolvedValue({ generatedMaps: [], raw: [], affected: 0 });
+
+      expect(service.deleteCat(1)).rejects.toThrow(new NotFoundException());
+    });
+
+    it('[FAIL]should occurred exception', async () => {
+      expect(failedService.deleteCat(1)).rejects.toThrow();
     });
   });
 });
@@ -148,9 +187,7 @@ const updateCatDto: UpdateCatDto = {
 const mockRepository = {
   insert: jest.fn().mockImplementation((req: CatEntity) => Promise.resolve()),
   find: jest.fn().mockResolvedValue(getCatByOwnerIdResp),
-  update: jest
-    .fn()
-    .mockResolvedValue({ generatedMaps: [], raw: [], affected: 1 }),
+  update: jest.fn(),
 };
 
 const mockFailedRepository = {

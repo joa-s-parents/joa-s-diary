@@ -6,6 +6,7 @@ import {
   Param,
   Put,
   ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 
 import { CatService } from './cat.service';
@@ -39,11 +40,21 @@ export class CatController {
     return this.catService.getCatByOwnerId(getCatByOwnerIdDto.ownerId);
   }
 
+  /**
+   * [PUT] update cat info
+   * @param {number} id                 cat id
+   * @param {UpdateCatDto} updateCatDto update cat info
+   */
   @Put(':id')
   updateCat(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateCatDto: UpdateCatDto,
   ) {
     return this.catService.updateCat(id, updateCatDto);
+  }
+
+  @Delete(':id')
+  deleteCat(@Param('id', ParseIntPipe) id: number) {
+    return this.catService.deleteCat(id);
   }
 }

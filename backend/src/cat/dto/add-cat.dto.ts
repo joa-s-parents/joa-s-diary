@@ -1,4 +1,3 @@
-import { Transform } from 'class-transformer';
 import {
   Equals,
   IsDate,
@@ -26,7 +25,6 @@ export class AddCatDto extends OwnerDto {
 
   @IsDate()
   @IsNotEmpty()
-  @Transform(({ value }) => value && new Date(value))
   @MaxDate(new Date())
   readonly birthedAt: Date;
 }

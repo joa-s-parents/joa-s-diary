@@ -1,5 +1,5 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { CatController } from './cat.controller';
 import { CatService } from './cat.service';
@@ -11,9 +11,10 @@ import { CatEntity } from './entities/cat.entity';
 describe('Cat Controller Test', () => {
   let controller: CatController;
   let service: CatService;
+  let module: TestingModule;
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       controllers: [CatController],
       providers: [
         CatService,
@@ -27,6 +28,8 @@ describe('Cat Controller Test', () => {
     controller = module.get<CatController>(CatController);
     service = module.get<CatService>(CatService);
   });
+
+  afterEach(async () => await module.close());
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
@@ -85,6 +88,24 @@ describe('Cat Controller Test', () => {
       );
     });
   });
+
+  describe('delete cat info', () => {
+    it('[SUCC]should delete a cat', async () => {
+      controller.deleteCat(1);
+
+      expect(service.deleteCat).toHaveBeenCalledWith(1);
+    });
+
+    it('[FAIL]interval server error', async () => {
+      jest
+        .spyOn(service, 'deleteCat')
+        .mockRejectedValue(new InternalServerErrorException());
+
+      expect(controller.deleteCat(1)).rejects.toThrow(
+        new InternalServerErrorException(),
+      );
+    });
+  });
 });
 
 //* Mocking data
@@ -131,4 +152,5 @@ const mockCatService = {
       Promise.resolve(getCatByOwnerIdResp),
     ),
   updateCat: jest.fn(),
+  deleteCat: jest.fn(),
 };

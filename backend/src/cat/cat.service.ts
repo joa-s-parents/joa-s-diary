@@ -51,6 +51,11 @@ export class CatService {
       });
   }
 
+  /**
+   * update cat info
+   * @param {number} id                 cat id
+   * @param {UpdateCatDto} updateCatDto update cat info
+   */
   async updateCat(id: number, updateCatDto: UpdateCatDto) {
     const result = await this.catRepository
       .update(
@@ -63,6 +68,29 @@ export class CatService {
       )
       .catch((error: QueryFailedError) => {
         this.logger.error(`update cat query failed. ${error}`);
+        throw new InternalServerErrorException({
+          message: `database query failed`,
+        });
+      });
+
+    if (result.affected < 1) {
+      throw new NotFoundException();
+    }
+
+    return;
+  }
+
+  /**
+   * delete cat info(update deleted_at column)
+   * @param {number} id cat id
+   */
+  async deleteCat(id: number) {
+    const result = await this.catRepository
+      .update({ id: id }, { deletedAt: new Date() })
+      .catch((error: QueryFailedError) => {
+        this.logger.error(
+          `delete cat query failed(update deleted_at field). ${error}`,
+        );
         throw new InternalServerErrorException({
           message: `database query failed`,
         });
